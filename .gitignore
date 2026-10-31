@@ -1,0 +1,6 @@
+# 构建工具与缓存，不需要发布
+_build/raw/
+_build/__pycache__/
+_build/fetch_state.json
+_build/repos.jsonl
+_build/*.png

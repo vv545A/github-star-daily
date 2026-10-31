@@ -1,0 +1,82 @@
+name: 每日更新数据
+
+# 每天自动重抓 GitHub 快照、重建数据、自检通过后提交
+on:
+  schedule:
+    # UTC 19:30 = 北京时间次日 03:30，走低谷时段
+    - cron: '30 19 * * *'
+  workflow_dispatch:      # 也可以在 Actions 页面手动点一下
+
+permissions:
+  contents: write
+
+# 同一时间只跑一个，避免两次运行互相覆盖
+concurrency:
+  group: update-data
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+
+    steps:
+      - name: 取出仓库
+        uses: actions/checkout@v4
+
+      - name: 准备 Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: 准备 Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      # 第 1 层 = Star ≥ 10000（日推池），第 2 层 = 5000~9999（搜索池）
+      - name: 抓取最新快照
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_SLEEP: '2.4'
+        run: |
+          cd _build
+          rm -rf raw fetch_state.json repos.jsonl
+          python fetch_all.py --tier 1
+          python fetch_all.py --tier 2
+
+      - name: 构建前端数据
+        run: python _build/build.py
+
+      - name: 自检（不通过就不提交）
+        run: node _build/test.js
+
+      - name: 提交更新
+        id: commit
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add assets/data.js assets/data-extra.js assets/topics.js
+
+          if git diff --cached --quiet; then
+            echo "数据没有变化，跳过提交"
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+
+          MSG="data: 自动更新快照 $(date -u +%F)"
+          # 上一次提交也是自动数据更新时，用 --amend 覆盖掉，
+          # 保证仓库里始终只有「一个滚动更新的数据提交」，不会每天涨 1.3MB
+          if git log -1 --pretty=%s | grep -q '^data: 自动更新'; then
+            git commit --amend -m "$MSG"
+            git push --force-with-lease
+          else
+            git commit -m "$MSG"
+            git push
+          fi
+          echo "changed=true" >> "$GITHUB_OUTPUT"
+
+      - name: 写入运行摘要
+        if: always()
+        continue-on-error: true
+        run: node _build/summary.js
