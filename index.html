@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#ffffff">
+<title>万星日推 · GitHub 开源项目发现站</title>
+<meta name="description" content="每天 10 个 Star 过万的 GitHub 开源项目推荐，支持全站千星项目搜索、创新项目雷达、收藏分组。中文简介面向新手，含部署方式。">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⭐</text></svg>">
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+
+<!-- ============ 顶栏 ============ -->
+<header class="topbar">
+  <div class="topbar-inner">
+    <a class="brand" href="#/" aria-label="返回首页">
+      <span class="brand-mark" aria-hidden="true">
+        <svg viewBox="0 0 16 16"><path d="M8 .25a.75.75 0 0 1 .673.418l1.882 3.815 4.21.612a.75.75 0 0 1 .416 1.279l-3.046 2.97.719 4.192a.751.751 0 0 1-1.088.791L8 12.347l-3.766 1.98a.75.75 0 0 1-1.088-.79l.72-4.194L.818 6.374a.75.75 0 0 1 .416-1.28l4.21-.611L7.327.668A.75.75 0 0 1 8 .25Z"/></svg>
+      </span>
+      <span class="brand-text">
+        <b>万星日推</b>
+        <small>GitHub 开源发现</small>
+      </span>
+    </a>
+
+    <div class="search" role="search">
+      <span class="search-icon" aria-hidden="true">
+        <svg viewBox="0 0 16 16"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-.326 1.275.749.749 0 0 1-.734-.215ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+      </span>
+      <input id="searchInput" type="search" autocomplete="off" spellcheck="false"
+             placeholder="搜技术栈、项目名、用途…（按 / 快速聚焦）"
+             aria-label="搜索项目">
+      <button id="searchClear" class="search-clear" type="button" aria-label="清空搜索" hidden>
+        <svg viewBox="0 0 16 16"><path d="M3.72 3.72a.75.75 0 0 1 1.06 0L8 6.94l3.22-3.22a.749.749 0 1 1 1.06 1.06L9.06 8l3.22 3.22a.749.749 0 1 1-1.06 1.06L8 9.06l-3.22 3.22a.749.749 0 1 1-1.06-1.06L6.94 8 3.72 4.78a.75.75 0 0 1 0-1.06Z"/></svg>
+      </button>
+    </div>
+
+    <nav class="nav" aria-label="主导航">
+      <a class="nav-item" data-nav="home" href="#/">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.5 15 8h-2v6h-3.5v-4h-3v4H3V8H1Z"/></svg>
+        <span>每日推荐</span>
+      </a>
+      <a class="nav-item" data-nav="novel" href="#/novel">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M9.5 1 3 9h3.5L6 15l7-8.5h-3.8L9.5 1Z"/></svg>
+        <span>创新雷达</span>
+      </a>
+      <a class="nav-item" data-nav="fav" href="#/favorites">
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1.7l1.9 3.85 4.25.62-3.07 3 .72 4.23L8 11.4l-3.8 2 .72-4.23-3.07-3 4.25-.62Z"/></svg>
+        <span>收藏</span>
+        <b id="favCount" class="nav-badge" hidden>0</b>
+      </a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+  <!-- ============ 每日推荐 ============ -->
+  <section id="viewHome">
+    <div class="hero">
+      <div class="hero-kicker">
+        <span class="pill pill-live"><i></i>每日更新</span>
+        <span class="hero-date" id="heroDate"></span>
+      </div>
+      <h1>今天值得看的 <em>10</em> 个万星开源项目</h1>
+      <p class="hero-sub">
+        全部 Star 过万，每天换一批，保证覆盖不同方向，其中至少 2 个是近两年冒出来的新锐项目。
+      </p>
+
+      <div class="stats">
+        <div class="stat">
+          <span class="stat-num" id="statPool">—</span>
+          <span class="stat-label">可搜索项目</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="statTenK">—</span>
+          <span class="stat-label">万星项目</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="statNovel">—</span>
+          <span class="stat-label">新锐创新</span>
+        </div>
+        <div class="stat">
+          <span class="stat-num" id="statStacks">—</span>
+          <span class="stat-label">技术方向</span>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <button id="shuffleBtn" class="btn btn-primary" type="button">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13.5 2a.75.75 0 0 0-.75.75v3.5a.75.75 0 0 0 1.5 0v-3.5A.75.75 0 0 0 13.5 2Zm-11 0a.75.75 0 0 0-.75.75v10.5a.75.75 0 0 0 .75.75h10.5a.75.75 0 0 0 0-1.5H3.25V3A.75.75 0 0 0 2.5 2Z"/></svg>
+          换一批
+        </button>
+        <button id="syncBtn" class="btn" type="button" title="从 GitHub 拉取这些项目的实时 Star 数">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3a5 5 0 1 0 4.546 2.914.75.75 0 0 1 1.363-.625A6.5 6.5 0 1 1 8 1.5v1.4a.1.1 0 0 0 .17.07l1.4-1.4a.1.1 0 0 0 0-.14L8.17.03A.1.1 0 0 0 8 0Z"/></svg>
+          <span id="syncBtnText">同步最新 Star</span>
+        </button>
+        <span class="sync-note" id="syncNote"></span>
+        <div class="toolbar-right">
+          <span class="data-age" id="dataAge"></span>
+          <button id="settingsBtn" class="icon-btn" type="button" title="设置 GitHub Token（可选，提高同步额度）" aria-label="设置">
+            <svg viewBox="0 0 16 16"><path d="M8 10.5a2.5 2.5 0 1 0 0-5 2.5 2.5 0 0 0 0 5Z"/><path d="M6.5 1h3l.4 2.1 1.5.9 2-.8 1.5 2.6-1.6 1.5v1.8l1.6 1.4-1.5 2.6-2-.8-1.5.9-.4 2.1h-3l-.4-2.1-1.5-.9-2 .8L.1 10.5l1.6-1.4V7.3L.1 5.8l1.5-2.6 2 .8 1.5-.9Z" opacity=".55"/></svg>
+          </button>
+        </div>
+      </div>
+
+      <div class="settings" id="settingsPanel" hidden>
+        <div class="settings-row">
+          <label for="tokenInput">GitHub Token（可选）</label>
+          <input id="tokenInput" type="password" autocomplete="off" spellcheck="false" placeholder="ghp_… 不填也能用，只是额度更低">
+          <button id="tokenSave" class="btn btn-sm btn-primary" type="button">保存</button>
+          <button id="tokenClear" class="btn btn-sm" type="button">清除</button>
+        </div>
+        <p class="settings-hint">
+          未登录时 GitHub 接口限制为每小时 60 次、搜索每分钟 10 次。填入自己的 Token 可大幅提高额度，Token 只保存在本机浏览器，不会上传。
+        </p>
+      </div>
+    </div>
+
+    <div class="quick-tags" id="quickTags" aria-label="快捷筛选"></div>
+
+    <div class="feed-head" id="dailyHead">
+      <h2>今日推荐</h2>
+      <span class="feed-meta" id="dailyMeta"></span>
+    </div>
+
+    <div class="result-bar" id="resultBar" hidden>
+      <div class="result-text" id="resultTitle"></div>
+      <div class="result-actions">
+        <button class="btn btn-sm" id="liveSearchBtn" type="button" hidden>
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M10.68 11.74a6 6 0 0 1-7.922-8.982 6 6 0 0 1 8.982 7.922l3.04 3.04a.749.749 0 0 1-1.06 1.06ZM11.5 7a4.499 4.499 0 1 0-8.997 0A4.499 4.499 0 0 0 11.5 7Z"/></svg>
+          在 GitHub 全站搜索
+        </button>
+        <button class="btn btn-sm" id="backToDaily" type="button" hidden>返回今日推荐</button>
+      </div>
+    </div>
+
+    <div class="loading-note" id="extraLoading" hidden>
+      <i class="spinner"></i>正在后台加载更多项目（可先浏览已加载的结果）
+    </div>
+
+    <div class="grid" id="grid"></div>
+
+    <div class="empty" id="emptyState" hidden>
+      <div class="empty-icon">🔍</div>
+      <h3 id="emptyTitle">没有找到匹配的项目</h3>
+      <p id="emptyHint"></p>
+      <div class="empty-suggest" id="emptySuggest"></div>
+    </div>
+
+    <div class="load-more-wrap" id="loadMoreWrap" hidden>
+      <button class="btn" id="loadMoreBtn" type="button">显示更多结果</button>
+    </div>
+  </section>
+
+  <!-- ============ 创新雷达 ============ -->
+  <section id="viewNovel" hidden>
+    <div class="hero hero-compact">
+      <div class="hero-kicker">
+        <span class="pill pill-novel">⚡ 新锐创新</span>
+        <span class="hero-date">近 3 年创建 · 已成万星</span>
+      </div>
+      <h1>刚冒头就上万星的项目</h1>
+      <p class="hero-sub">
+        这些项目提出的是新玩法、新形态，而不是又一个轮子。按「每月新增 Star」排序，越靠前说明越被需要。
+      </p>
+    </div>
+    <div class="quick-tags" id="novelTags" aria-label="创新方向筛选"></div>
+    <div class="feed-head">
+      <h2 id="novelTitle">全部新锐项目</h2>
+      <span class="feed-meta" id="novelMeta"></span>
+    </div>
+    <div class="grid" id="novelGrid"></div>
+  </section>
+
+  <!-- ============ 收藏 ============ -->
+  <section id="viewFav" hidden>
+    <div class="hero hero-compact">
+      <div class="hero-kicker">
+        <span class="pill pill-fav">★ 我的收藏</span>
+        <span class="hero-date">只存在本机浏览器</span>
+      </div>
+      <h1>收藏夹</h1>
+      <p class="hero-sub">按技术方向自动分组，方便按主题集中研究。</p>
+      <div class="stats stats-3">
+        <div class="stat"><span class="stat-num" id="favTotal">0</span><span class="stat-label">已收藏</span></div>
+        <div class="stat"><span class="stat-num" id="favGroups">0</span><span class="stat-label">技术分组</span></div>
+        <div class="stat"><span class="stat-num" id="favTenK">0</span><span class="stat-label">万星项目</span></div>
+      </div>
+    </div>
+    <div class="quick-tags" id="groupNav" aria-label="分组跳转" hidden></div>
+    <div id="favBody"></div>
+  </section>
+
+</main>
+
+<footer class="site-foot">
+  <p class="foot-line">
+    Star 数为 <b id="footUpdated">—</b> 的快照，可点「同步最新 Star」拉取实时数据。
+  </p>
+  <p class="foot-line dim">
+    数据来源 GitHub 官方 API · 中文简介由人工与规则生成 · 本页纯静态，无任何后端与埋点
+  </p>
+</footer>
+
+<div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+<script src="assets/topics.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+</body>
+</html>
